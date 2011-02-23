@@ -1,0 +1,45 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+	<title>The Chase Controller</title>
+	<meta charset="utf-8" />
+	
+	<style type="text/css">
+		body {
+			background: #000;
+		}
+		
+		#arrow {
+			position: absolute;
+			left: 50%;
+			top: 50%;
+			font-size: 200px;
+			margin-top: -100px;
+			margin-left: -100px;
+			color: #fff;
+			-webkit-transition: opacity 1s;
+			-webkit-transform: rotate3d(0deg);
+		}
+	</style>
+</head>
+<body>
+	<div id="arrow">→</div>
+	
+	<script>
+		var arrow = document.getElementById('arrow');
+		
+		var changeDirection = function(e) {
+			var r = Math.atan2(e.pageY - (window.innerHeight / 2), e.pageX - (window.innerWidth / 2));
+			var d = r * (180/Math.PI);
+			
+			arrow.style.webkitTransform = 'rotateZ('+d+'deg)';
+		};
+		
+		document.addEventListener('mousemove', changeDirection);
+		document.addEventListener('touchstart', changeDirection);
+		document.addEventListener('touchmove', changeDirection);
+	</script>
+</body>
+
+</html>
