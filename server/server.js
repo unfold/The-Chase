@@ -9,14 +9,12 @@ server.listen(8080);
 var socket = io.listen(server);
 
 socket.on('connection', function(client) {
-	client.broadcast({type: 'connect', userId: client.sessionId });
-	
 	client.on('message', function(data) {
-		data.userId = client.sessionId;
+		data.userid = client.sessionId;
 		client.broadcast(data);
 	});
 	
 	client.on('disconnect', function(message) {
-		client.broadcast({type: 'disconnect', userId: client.sessionId });
+		client.broadcast({type: 'disconnect', userid: client.sessionId });
 	});
 });
