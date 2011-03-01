@@ -7,14 +7,25 @@ var server = http.createServer();
 server.listen(8080);
 
 var socket = io.listen(server);
+var viewers = [];
 
 socket.on('connection', function(client) {
+	var sendDataToViewers = function(data) {
+		for(i in viewers) {
+			viewers[i].send(data);
+		}
+	}
+	
 	client.on('message', function(data) {
-		data.userid = client.sessionId;
-		client.broadcast(data);
+		if(data == 'viewer') {
+			viewers.push(client);
+		} else {
+			data.userid = client.sessionId;
+			sendDataToViewers(data);
+		}
 	});
 	
 	client.on('disconnect', function(message) {
-		client.broadcast({type: 'disconnect', userid: client.sessionId });
+		sendDataToViewers({type: 'disconnect', userid: client.sessionId });
 	});
 });
