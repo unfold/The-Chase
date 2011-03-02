@@ -1,0 +1,76 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+	<title>The Chase Controller</title>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width" />
+	
+	<style type="text/css">
+		body {
+			background: #000;
+		}
+		
+		#arrow {
+			position: absolute;
+			left: 50%;
+			top: 50%;
+			font-size: 100px;
+			margin-top: -50px;
+			margin-left: -50px;
+			color: #fff;
+			opacity: .2;
+			text-shadow: 0 0 30px #aaa;
+			-webkit-transition: opacity 1s;
+			-webkit-transform: rotateZ(-90deg);
+		}
+			#arrow.connected {
+				opacity: 1;
+			}
+	</style>
+</head>
+<body>
+	<div id="arrow">→</div>
+	
+	
+	<script src="lib/socket.io/support/socket.io-client/socket.io.js"></script>
+	<script>
+		var arrow = document.getElementById('arrow');
+		
+		// Change the direction of the arrow, and send data via websockets if connected
+		var changeDirection = function(e) {
+			e.preventDefault();
+			
+			var r = Math.atan2( e.changedTouches[0].clientY - (window.innerHeight / 2),
+								e.changedTouches[0].clientX - (window.innerWidth / 2));
+			
+			arrow.style.webkitTransform = 'rotateZ('+(r * (180 / Math.PI))+'deg)';
+			
+			if(websocket.connected) {
+				websocket.send({
+					type: 'update',
+					angle: r
+				});
+			}
+		};
+		
+		// Add listeners for changing direction
+		document.addEventListener('touchstart', changeDirection);
+		document.addEventListener('touchmove', changeDirection);
+		
+		// Set up websocket (using socket.io)
+		var websocket = new io.Socket('danielmahal.local', {
+			port: 8080,
+			transports: ['websocket']
+		});
+		
+		// Some styling
+		websocket.on('connect',		function() { arrow.className = 'connected'; });
+		websocket.on('disconnect',	function() { arrow.className = 'not-connected'; });
+		
+		// Connect!
+		websocket.connect();
+	</script>
+</body>
+
+</html>

@@ -1,0 +1,91 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+	<title>The Chase Viewer</title>
+	<meta charset="utf-8" />
+	
+	<style type="text/css">
+		body {
+			margin: 0;
+			padding: 0;
+			width: 100%;
+			height: 100%;
+			overflow: hidden;
+		}
+	</style>
+</head>
+<body>
+	<canvas id="canvas"></canvas>
+	
+	
+	<script src="lib/socket.io/support/socket.io-client/socket.io.js"></script>
+	<script>
+		var users = {};
+		var canvas = document.getElementById('canvas');
+		var context = canvas.getContext('2d');
+		
+		canvas.width = window.innerWidth;
+		canvas.height = window.innerHeight;
+		
+		// Define User object
+		var User = function(id) {
+			this.id = id;
+			this.x = Math.random() * canvas.width;
+			this.y = Math.random() * canvas.height;
+			this.color = Math.round(Math.random() * 255);
+			this.angle = 0;
+			
+			this.update = function() {
+				this.x += Math.cos(this.angle)*6;
+				this.y += Math.sin(this.angle)*6;
+				
+				this.x = this.x < 0 ? canvas.width : this.x % canvas.width;
+				this.y = this.y < 0 ? canvas.height : this.y % canvas.height;
+			}
+			
+			this.draw = function() {
+				context.fillStyle = 'hsl('+this.color+',70%,50%)';
+				context.beginPath();
+				context.arc(this.x, this.y, 10, 0, Math.PI*2);
+				context.fill();
+				context.closePath();
+			}
+		};
+		
+		setInterval(function() {
+			context.fillStyle = 'rgba(255,255,255,0.1)';
+			context.fillRect(0,0,canvas.width,canvas.height);
+			
+			for(i in users) {
+				users[i].update();
+				users[i].draw();
+			}
+		}, 30);
+		
+		
+		// Set up websocket (using socket.io)
+		var websocket = new io.Socket('localhost', { port: 8080 });
+		
+		// On connect
+		websocket.on('connect', function() {
+			websocket.send('viewer');
+		});
+		
+		// On message
+		websocket.on('message', function(data) {
+			if(data.type == 'disconnect') {
+				delete users[data.userid];
+			} else if(!users[data.userid]) {
+				users[data.userid] = new User(data.userid);
+			} else {
+				users[data.userid].angle = data.angle;
+			}
+		});
+		
+		// Connect!
+		websocket.connect();
+	</script>
+</body>
+
+</html>
